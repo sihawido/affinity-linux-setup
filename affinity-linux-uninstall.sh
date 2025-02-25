@@ -9,70 +9,60 @@ wine_version="affinity-photo3-wine9.13-part3"
 # Defining text styles for readablity
 bold=$(tput bold); normal=$(tput sgr0)
 
-function CheckRum {
-  if [[  -f "$HOME/.local/bin/rum" ]]; then
-    echo "Found installation of Rum."
-    Ask "Delete Rum?" && RemoveRum
-  fi
-}
-function RemoveRum {
-  rm -f "$HOME/.local/bin/rum" &&
-  return
-  Error "Could not delete Rum"
-}
+# Files and directories to delete
+files=("$HOME/.local/bin/rum" "$HOME/.local/bin/launch-affinity" "temp_wineinstall" "/opt/wines/$wine_version" "$wine_install_path" "$HOME/.local/share/applications/Affinity Photo 2.desktop" "$HOME/.local/share/applications/Affinity Designer 2.desktop" "$HOME/.local/share/applications/Affinity Publisher 2.desktop")
 
-function CheckWine {
-  if [[ -d "temp_wineinstall" ]]; then
-    echo "Found download of ElementalWarrior's Wine."
-    Ask "Delete ElementalWarrior's Wine?" && RemoveDownload
+# Checking if file exists and asking to delete it
+function CheckFiles {
+  IFS=""
+  # Checking if any marked files exist
+  declare -i counter=0
+  for file in ${files[*]}; do
+    if [[ -f "$file" ]] || [[ -d "$file" ]]; then
+      counter+=1
+    fi
+  done
+  if (( $counter == 0 )); then
+    echo "No files marked for deletion found."
+    exit
   fi
-  if [[ -d "/opt/wines/$wine_version" ]]; then
-    echo "Found installation of ElementalWarrior's Wine."
-    Ask "Delete ElementalWarrior's Wine?" && RemoveWine
-  fi
+  
+  # Listing files to be deleted
+  echo "Files to be deleted:"
+  for file in ${files[*]}; do
+    if [[ -f "$file" ]] || [[ -d "$file" ]]; then
+      echo "- $file"
+    fi
+  done
+  Ask "Proceed?" && RemoveFiles
+  unset IFS
 }
-function RemoveDownload {
-  rm -rf "temp_wineinstall/" &&
-  break
-  Error "Could not delete 'temp_wineinstall'"
+function RemoveFiles {
+  for file in ${files[*]}; do
+    if [[ -f "$file" ]] || [[ -d "$file" ]]; then
+      if [[ -w "$file" ]]; then
+        RemoveFile "$file"
+      else
+        SudoRemoveFile "$file"
+      fi
+    fi
+  done
 }
-function RemoveWine {
-  echo "Deleting '/opt/wines/$wine_version' requires root privileges." &&
-  sudo rm -rf "/opt/wines/$wine_version" &&
+function RemoveFile {
+  rm -rf "$1" &&
   return
-  Error "Could not delete ElementalWarrior's Wine"
+  Error "Could not delete '$1'"
 }
-
-function CheckWineprefix {
-  if [[ -d "$wine_install_path" ]]; then
-    Ask "Delete the Affinity Wineprefix?" && RemoveWineprefix
-  fi
-}
-function RemoveWineprefix {
-  rm -rf "$wine_install_path" &&
+function SudoRemoveFile {
+  echo "Removing '$1' requires root privileges."
+  sudo rm -rf "$1" &&
   return
-  Error "Failed to delete Wineprefix"
-}
-
-function CheckShortcuts {
-    shortcuts=("Affinity Photo 2.desktop" "Affinity Designer 2.desktop" "Affinity Publisher 2.desktop")
-    IFS=""
-    for shortcut in ${shortcuts[@]}; do
-        if [[ -f "$HOME/.local/share/applications/$shortcut" ]]; then
-            while :; do
-                echo "Deleting '$shortcut'..." &&
-                rm "$HOME/.local/share/applications/$shortcut" &&
-                break
-                Error "Could not delete $shortcut"
-            done
-        fi
-    done
-    unset IFS
+  Error "Could not delete '$1'"
 }
 
 function Error {
-    echo "${bold}ERROR${normal}: $1. If this is an issue, please report it."
-    exit 1
+  echo "${bold}ERROR${normal}: $1. If this is an issue, please report it."
+  exit 1
 }
 
 function Ask {
@@ -80,14 +70,10 @@ function Ask {
     read -p "$* [y/n]: " yn
     case $yn in
       [Yy]*) return 0 ;;
-      [Nn]*) echo "Skipping..." ; return 1 ;;
+      [Nn]*) return 1 ;;
     esac
   done
 }
 
 # Running functions
-CheckRum
-CheckWine
-CheckWineprefix
-CheckShortcuts
-echo; echo "${bold}All Done!${normal}"
+CheckFiles
