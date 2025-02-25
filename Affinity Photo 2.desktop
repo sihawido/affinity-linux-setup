@@ -2,6 +2,6 @@
 Name = Affinity Photo 2
 Icon = <HOME>/.local/share/affinity-wine/drive_c/Program Files/Affinity/Photo 2/PhotoHelp/Contents/Resources/shared/icon.png
 Type = Application
-Exec = rum affinity-photo3-wine9.13-part3 '<HOME>/.local/share/affinity-wine' wine '<HOME>/.local/share/affinity-wine/drive_c/Program Files/Affinity/Photo 2/Photo.exe'
+Exec = launch-affinity photo
 Terminal = false
 Keywords = image edit editing visual graphic photoshop

@@ -2,6 +2,6 @@
 Name = Affinity Designer 2
 Icon = <HOME>/.local/share/affinity-wine/drive_c/Program Files/Affinity/Designer 2/DesignerHelp/Contents/Resources/shared/icon.png
 Type = Application
-Exec = rum affinity-photo3-wine9.13-part3 '<HOME>/.local/share/affinity-wine' wine '<HOME>/.local/share/affinity-wine/drive_c/Program Files/Affinity/Designer 2/Designer.exe'
+Exec = launch-affinity designer
 Terminal = false
 Keywords = editing visual graphic design illustrator svg vector

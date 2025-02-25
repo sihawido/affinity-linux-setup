@@ -1,0 +1,61 @@
+#!/bin/bash
+set -e
+
+# Useful variables
+wineprefix="$HOME/.local/share/affinity-wine"
+photo_exe="$HOME/.local/share/affinity-wine/drive_c/Program Files/Affinity/Photo 2/Photo.exe"
+designer_exe="$HOME/.local/share/affinity-wine/drive_c/Program Files/Affinity/Designer 2/Designer.exe"
+publisher_exe="$HOME/.local/share/affinity-wine/drive_c/Program Files/Affinity/Publisher 2/Publisher.exe"
+
+function Launch {
+  # Checking if executable exists
+  if [[ ! -f "$exe" ]]; then
+    echo "Command not found."
+    exit 1
+  fi
+  
+  # Crafting the command
+  command='rum affinity-photo3-wine9.13-part3 "$wineprefix" wine "$exe"'
+  if [[ "$verbose" != "yes" ]]; then command="$command 1>& /dev/null"; fi
+  if [[ "$orphaned" == "yes" ]]; then command="$command &"; fi
+  
+  # Running the command
+  #echo "$command" # For debugging
+  eval "$command"
+}
+
+function Help () {
+  echo "Synopsis:
+  affinity-launch [OPTION] [COMMAND]
+Commands:
+  photo      - Launches Affinity Photo 2
+  designer   - Launches Affinity Designer 2
+  publisher  - Launches Affinity Publisher 2
+  help       - Prints this page
+Options:
+  --verbose  - Whether to show debug output
+  --orphaned - Runs affinity on a thread separate from the terminal"
+}
+
+# Gathering input
+declare -i counter=0
+for param in $@; do
+  # Commands
+  if [[ "$param" == "photo" ]]; then exe="$photo_exe"
+  elif [[ "$param" == "designer" ]]; then exe="$designer_exe"
+  elif [[ "$param" == "publisher" ]]; then exe="$publisher_exe"
+  elif [[ "$param" == "help" ]]; then Help
+  fi
+  
+  # Options
+  if [[ $param == "--verbose" ]]; then verbose="yes"
+  elif [[ $param == "--orphaned" ]]; then orphaned="yes"
+  fi
+  counter+=1
+done
+
+if (( $counter == 0 )); then
+  echo "No command specified. Try launch-affinity help"
+else
+  Launch
+fi

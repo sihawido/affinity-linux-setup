@@ -1,3 +1,5 @@
+#!/bin/bash
+
 if [[ $USER == "root" ]]; then
   echo "Please do not run as root."
   exit 1
@@ -68,33 +70,36 @@ function CheckDependencies {
   echo Dependencies found.
 }
 
-function CheckRum {
-  if [[  ! -f "$HOME/.local/bin/rum" ]]; then
-    Ask "Install Rum?" && InstallRum
-  else
-    echo "Found existing installation of Rum."
-    Ask "Reinstall Rum?" && InstallRum
-  fi
-}
+# Installing Rum
 function InstallRum {
-  mkdir "temp" &&
-  git clone "https://gitlab.com/xkero/rum" "temp/" 1>& /dev/null &&
+  echo "Installing Rum..."
   mkdir --parents "$HOME/.local/bin" &&
-  cp "temp/rum" "$HOME/.local/bin" &&
-  rm -rf "temp" &&
+  wget -q "https://gitlab.com/xkero/rum/-/raw/master/rum" -P "$HOME/.local/bin/" &&
   chmod +x "$HOME/.local/bin/rum" &&
   return
   Error "Could not install Rum"
 }
 
+# Installing launch-affinity shell script
+function InstallLaunchAffinity {
+  echo "Installing launch-affinity..." &&
+  mkdir --parents "$HOME/.local/bin" &&
+  wget -q "https://raw.githubusercontent.com/sihawido/affinity-linux-setup/main/launch-affinity" -P "$HOME/.local/bin/" &&
+  chmod +x "$HOME/.local/bin/launch-affinity" &&
+  return
+  Error "Failed to install launch-affinity"
+}
+
+# Checking if Wine is installed
 function CheckWine {
   if [[ -d "/opt/wines/$wine_version" ]]; then
     echo "Found installation of ElementalWarrior's Wine."
     Ask "Reinstall ElementalWarrior's Wine?" && InstallWine
   else
-    Ask "Install ElementalWarrior's Wine?" && InstallWine
+    InstallWine
   fi
 }
+# Installing Wine
 function InstallWine {
   # Checking and downloading wine
   while :; do
@@ -138,7 +143,7 @@ function InstallWine {
     echo "Installing..." &&
     make install --jobs $threads 1>& /dev/null &&
     cd "$init_dir" &&
-    echo "Note: This step requires root privileges as it copies ElementalWarrior's Wine to ${bold}/opt/wines${normal}." &&
+    echo "Note: This step requires root privileges as it copies ElementalWarrior's Wine to ${bold}/opt/wines/${normal}." &&
     Ask "Proceed?" && # Asking because sudo can time out
     sudo mkdir -p "/opt/wines" &&
     sudo cp -r "temp_wineinstall/wine-install" "/opt/wines/$wine_version" &&
@@ -148,14 +153,16 @@ function InstallWine {
   done
 }
 
+# Checking if Wineprefix exists
 function CheckWineprefix {
   if [[ -d "$wine_install_path" ]]; then
     echo "Found existing Wineprefix for Affinity."
     Ask "Delete existing Wineprefix and set up a new one?" && Wineprefix
   else
-    Ask "Create Wineprefix?" && Wineprefix
+    Wineprefix
   fi
 }
+# Initializing Wineprefix
 function Wineprefix {
   if [[ -d "$wine_install_path" ]]; then
     echo "Deleting existing Wineprefix..."
@@ -173,15 +180,16 @@ function Wineprefix {
   Error "Failed to configure Wineprefix"
 }
 
+# Checking if WinMetadata is installed
 function CheckWinMetadata {
   if [[ -d "$wine_install_path/drive_c/windows/system32/WinMetadata" ]]; then
     echo "Found WinMetadata in existing Wineprefix."
     Ask "Reinstall WinMetadata?" && WinMetadata
   else
-    Ask "Install WinMetadata?" && WinMetadata
+    WinMetadata
   fi
 }
-
+# Installing WinMetadata
 function WinMetadata {
   while :; do
     echo "Enter path to the 'WinMetadata' directory:"
@@ -198,6 +206,7 @@ function WinMetadata {
   done
 }
 
+# Installing DXVK and VKD3D
 function InstallDXVK_VKD3D () {
   while :; do
     echo "Installing DXVK..." &&
@@ -214,6 +223,7 @@ function InstallDXVK_VKD3D () {
   done
 }
 
+# Starting the Affinity installer executable
 function StartExecutable {
   while :; do
     echo "Enter path to the affinity installer executable:"
@@ -230,50 +240,31 @@ function StartExecutable {
   done
 }
 
-function CheckShortcuts {
-  # Affinity Photo
-  if [[ -f "$wine_install_path/drive_c/Program Files/Affinity/Photo 2/Photo.exe" ]]; then
-    Photo2Shortcut
-  fi
-  if [[ -f "$wine_install_path/drive_c/Program Files/Affinity/Designer 2/Designer.exe" ]]; then
-    Designer2Shortcut
-  fi
-  if [[ -f "$wine_install_path/drive_c/Program Files/Affinity/Publisher 2/Publisher.exe" ]]; then
-    Publisher2Shortcut
-  fi
+# Checking if .desktop shortcuts can be created for installed affinity software
+function CheckDesktopShortcuts {
+  softwares=("Photo" "Designer" "Publisher")
+  for software in ${softwares[@]}; do
+    if [[ -f "$wine_install_path/drive_c/Program Files/Affinity/$software 2/$software.exe" ]]; then
+      CreateDesktopShortcut $software
+    fi
+  done
 }
-
-function Photo2Shortcut {
-  echo "Creating a .desktop shortcut for Affinity Photo 2."
-  wget -q "https://raw.githubusercontent.com/sihawido/affinity-linux-setup/main/Affinity Photo 2.desktop" -P "temp/" &&
-  sed "s|<HOME>|$HOME|g" -i "temp/Affinity Photo 2.desktop" &&
-  cp -f "temp/Affinity Photo 2.desktop" "$HOME/.local/share/applications/" &&
+# Creating .desktop shortcut
+function CreateDesktopShortcut {
+  software="$1"
+  software_name="Affinity $software 2"
+  echo "Creating a .desktop shortcut for $software_name."
+  wget -q "https://raw.githubusercontent.com/sihawido/affinity-linux-setup/main/$software_name.desktop" -P "temp/" &&
+  sed "s|<HOME>|$HOME|g" -i "temp/$software_name.desktop" &&
+  cp -f "temp/$software_name.desktop" "$HOME/.local/share/applications/" &&
   rm -r "temp/" &&
   return
-  Error "Failed to create a .desktop shortcut for Affinity Photo 2."
-}
-function Designer2Shortcut {
-  echo "Creating a .desktop shortcut for Affinity Designer 2."
-  wget -q "https://raw.githubusercontent.com/sihawido/affinity-linux-setup/main/Affinity Designer 2.desktop" -P "temp/" &&
-  sed "s|<HOME>|$HOME|g" -i "temp/Affinity Designer 2.desktop" &&
-  cp -f "temp/Affinity Designer 2.desktop" "$HOME/.local/share/applications/" &&
-  rm -r "temp/" &&
-  return
-  Error "Failed to create a .desktop shortcut for Affinity  2."
-}
-function Publisher2Shortcut {
-  echo "Creating a .desktop shortcut for Affinity Publisher 2."
-  wget -q "https://raw.githubusercontent.com/sihawido/affinity-linux-setup/main/Affinity Publisher 2.desktop" -P "temp/" &&
-  sed "s|<HOME>|$HOME|g" -i "temp/Affinity Publisher 2.desktop" &&
-  cp -f "temp/Affinity Publisher 2.desktop" "$HOME/.local/share/applications/" &&
-  rm -r "temp/" &&
-  return
-  Error "Failed to create a .desktop shortcut for Affinity  2"
+  Error "Failed to create a .desktop shortcut for $software_name."
 }
 
 function Error {
-echo "${bold}ERROR${normal}: $1. If this is an issue, please report it."
-exit 1
+  echo "${bold}ERROR${normal}: $1. If this is an issue, please report it."
+  exit 1
 }
 
 function Ask {
@@ -286,26 +277,32 @@ function Ask {
   done
 }
 
-# Running functions
-CheckOS
-CheckDependencies
-CheckTempDir
-CheckRum
-CheckWine
-CheckWineprefix
-CheckWinMetadata
-Ask "Set up DXVK and VKD3D? (results in better performance and a bit less flickering)" && InstallDXVK_VKD3D
-declare -i counter=0
-while :; do
-    if (( counter == 0 )); then question="Start the Affinity installer executable?"
-    else question="Run another installer?"; fi
+# Checking stuff
+CheckOS; CheckDependencies; CheckTempDir
+# Installing stuff
+InstallRum; InstallLaunchAffinity
+# Installing Wine stuff
+CheckWine; CheckWineprefix; CheckWinMetadata
+# Asking to install DXVK and VKD3D
+Ask "Install DXVK and VKD3D? (results in better performance and a bit less flickering)" && InstallDXVK_VKD3D
 
-    if Ask "$question"; then
-        StartExecutable
-        counter+=1
-    else
-        break
-    fi
+# Asking to run the Affinity installer executable
+declare -i counter=0;
+while :; do
+  if (( counter == 0 )); then
+    question="Start the Affinity installer executable?"
+  else
+    question="Run another installer?"
+  fi
+  if Ask "$question"; then
+    StartExecutable
+    counter+=1
+  else
+    break
+  fi
 done
-CheckShortcuts
+
+# Checking if any .desktop shortcuts can be created
+CheckDesktopShortcuts
+
 echo "${bold}All Done!${normal}"
