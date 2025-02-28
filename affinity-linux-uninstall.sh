@@ -10,7 +10,7 @@ wine_version="affinity-photo3-wine9.13-part3"
 bold=$(tput bold); normal=$(tput sgr0)
 
 # Files and directories to delete
-files=("$HOME/.local/bin/rum" "$HOME/.local/bin/launch-affinity" "temp_wineinstall" "/opt/wines/$wine_version" "$wine_install_path" "$HOME/.local/share/applications/Affinity Photo 2.desktop" "$HOME/.local/share/applications/Affinity Designer 2.desktop" "$HOME/.local/share/applications/Affinity Publisher 2.desktop")
+files=("$HOME/.local/bin/rum" "$HOME/.local/bin/launch-affinity" "temp_wineinstall" "/opt/wines/$wine_version" "$wine_install_path" "$HOME/.local/share/applications/Affinity Photo 2.desktop" "$HOME/.local/share/applications/Affinity Designer 2.desktop" "$HOME/.local/share/applications/Affinity Publisher 2.desktop" "affinity-linux-setup.sh" "affinity-linux-uninstall.sh")
 
 # Checking if file exists and asking to delete it
 function CheckFiles {
