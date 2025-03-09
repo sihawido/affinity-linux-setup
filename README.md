@@ -22,7 +22,7 @@ curl -Os https://raw.githubusercontent.com/sihawido/affinity-linux-setup/main/af
 5. Launch the Affinity software using your DE or by typing `launch-affinity` in the terminal.
 
 ## Notes
-- To scale the apps you can run `rum "affinity-photo3-wine9.13-part3" "$HOME/.local/share/wine-affinity" winecfg`, go to the 'Graphics' tab in the opened window and change the 'dpi' under 'Screen resolution' to something higher.
+- To scale the apps you can run `rum "affinity-photo3-wine9.13-part3" "$HOME/.local/share/affinity-wine" winecfg`, go to the 'Graphics' tab in the opened window and change the 'dpi' under 'Screen resolution' to something higher.
 
 ## Uninstalling
 1. Inside a terminal, run
