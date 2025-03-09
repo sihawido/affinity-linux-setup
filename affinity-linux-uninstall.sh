@@ -9,8 +9,11 @@ wine_version="affinity-photo3-wine9.13-part3"
 # Defining text styles for readablity
 bold=$(tput bold); normal=$(tput sgr0)
 
+
 # Files and directories to delete
-files=("$HOME/.local/bin/rum" "$HOME/.local/bin/launch-affinity" "temp_wineinstall" "/opt/wines/$wine_version" "$wine_install_path" "$HOME/.local/share/applications/Affinity Photo 2.desktop" "$HOME/.local/share/applications/Affinity Designer 2.desktop" "$HOME/.local/share/applications/Affinity Publisher 2.desktop" "affinity-linux-setup.sh" "affinity-linux-uninstall.sh")
+setup_script="affinity-linux-setup.sh"
+uninstall_script="affinity-linux-uninstall.sh"
+files=("$HOME/.local/bin/rum" "$HOME/.local/bin/launch-affinity" "temp_wineinstall" "/opt/wines/$wine_version" "$wine_install_path" "$HOME/.local/share/applications/Affinity Photo 2.desktop" "$HOME/.local/share/applications/Affinity Designer 2.desktop" "$HOME/.local/share/applications/Affinity Publisher 2.desktop")
 
 # Checking if file exists and asking to delete it
 function CheckFiles {
@@ -60,6 +63,14 @@ function SudoRemoveFile {
   Error "Could not delete '$1'"
 }
 
+function DeleteScripts {
+  if [[ -f "$setup_script" ]]; then
+    Ask "Delete affinity linux setup script?" && RemoveFile "$setup_script"
+  fi; if [[ -f "$uninstall_script" ]] then
+    Ask "Delete affinity linux uninstall script?" && RemoveFile "$uninstall_script"
+  fi
+}
+
 function Error {
   echo "${bold}ERROR${normal}: $1. If this is an issue, please report it."
   exit 1
@@ -77,3 +88,7 @@ function Ask {
 
 # Running functions
 CheckFiles
+if [[ ${files[*]} == "" ]]; then
+  echo "No files found marked for deletion."
+fi
+DeleteScripts
