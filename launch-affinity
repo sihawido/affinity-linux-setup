@@ -21,7 +21,8 @@ function Launch {
   
   # Running the command
   #echo "$command" # For debugging
-  eval "$command"
+  dxvk_cache_command='export DXVK_STATE_CACHE_PATH="$HOME/.local/share/affinity-wine"'
+  eval "$dxvk_cache_command; $command"
 }
 
 function Help () {
